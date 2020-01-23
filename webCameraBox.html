@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
+  <script>
+
+    let video,texture;
+    
+    // window.addEventListener('resize', onResize);
+
+    navigator.mediaDevices.getUserMedia({video: true, audio: false})
+      .then(function (stream) {
+        // Success
+        // video = stream;
+
+        video = document.createElement( 'video' );
+        // URLオブジェクトを作成して、videoエレメントのsrcに設定
+        video.srcObject = stream;
+        // 動画の再生
+        video.play();
+        // 動画テクスチャ作成
+        texture = new THREE.VideoTexture( video );
+        // 1テクセルが1ピクセルより大きな範囲をカバーするときのテクスチャサンプリング方法の指定
+        texture.magFilter = THREE.LinearFilter;
+        // 1テクセルが1ピクセルより小さな範囲をカバーするときのテクスチャサンプリング方法の指定
+        texture.minFilter = THREE.LinearFilter;
+        // 動画テクスチャフォーマットの指定
+        texture.format = THREE.RGBFormat;
+        
+        init();
+
+      }).catch(function (error) {
+      // Error
+      console.error('mediaDevice.getUserMedia() error:', error);
+      return;
+    });
+
+    function init() {
+
+      // サイズを指定
+      const width = 480;
+      const height = 270;
+
+      // レンダラーを作成
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector('#myCanvas')
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(width, height);
+
+      // シーンを作成
+      const scene = new THREE.Scene();
+
+      // カメラを作成
+      const camera = new THREE.PerspectiveCamera(45, width / height);
+      camera.position.set(0, 0, +1000);
+
+      // 箱を作成
+      const geometry = new THREE.BoxGeometry(400, 400, 400);
+      const material = new THREE.MeshStandardMaterial({
+				map: texture
+			});
+      const box = new THREE.Mesh(geometry, material);
+			scene.add(box);
+
+      // 平行光源
+      const directionalLight = new THREE.DirectionalLight(0xffffff);
+      directionalLight.position.set(1, 1, 1);
+      // シーンに追加
+      scene.add(directionalLight);
+
+      tick();
+
+      // 毎フレーム時に実行されるループイベントです
+      function tick() {
+        box.rotation.y += 0.01;
+        renderer.render(scene, camera); // レンダリング
+
+        requestAnimationFrame(tick);
+      }
+              // 初期化のために実行
+              onResize();
+        // リサイズイベント発生時に実行
+        window.addEventListener('resize', onResize);
+
+        function onResize() {
+          // サイズを取得
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+
+          // レンダラーのサイズを調整する
+          renderer.setPixelRatio(window.devicePixelRatio);
+          renderer.setSize(width, height);
+
+          // カメラのアスペクト比を正す
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+        }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="myCanvas"></canvas>
+</body>
+</html>
