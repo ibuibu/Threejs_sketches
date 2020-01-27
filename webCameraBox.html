@@ -10,10 +10,11 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
-  <script>
+  <script type="module">
 
+		import { GUI } from './gui.mjs';
     let video,texture;
-    
+
     // window.addEventListener('resize', onResize);
 
     navigator.mediaDevices.getUserMedia({video: true, audio: false})
@@ -34,7 +35,7 @@
         texture.minFilter = THREE.LinearFilter;
         // 動画テクスチャフォーマットの指定
         texture.format = THREE.RGBFormat;
-        
+
         init();
 
       }).catch(function (error) {
@@ -64,12 +65,18 @@
       camera.position.set(0, 0, +1000);
 
       // 箱を作成
-      const geometry = new THREE.BoxGeometry(400, 400, 400);
+      //const geometry = new THREE.BoxGeometry(400, 400, 400);
       const material = new THREE.MeshStandardMaterial({
 				map: texture
 			});
-      const box = new THREE.Mesh(geometry, material);
-			scene.add(box);
+      //const box = new THREE.Mesh(geometry, material);
+			//scene.add(box);
+
+			// planeを作成
+			const geometry = new THREE.PlaneGeometry( 500, 200, 320 );
+			//const material = new THREE.MeshBasicMaterial( {color: 0xFF0000, side: THREE.DoubleSide} );
+			const plane = new THREE.Mesh( geometry, material );
+			scene.add( plane );
 
       // 平行光源
       const directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -77,11 +84,33 @@
       // シーンに追加
       scene.add(directionalLight);
 
+			let rot = 0; // 角度
+			let mouseX = 0; // マウス座標
+			// マウス座標はマウスが動いた時のみ取得できる
+			document.addEventListener("mousemove", (event) => {
+				mouseX = event.pageX;
+			});
+
+			var params = {
+				light: true,
+			};
+			var gui = new GUI();
+			gui.add( params, 'light' );
+
       tick();
 
       // 毎フレーム時に実行されるループイベントです
       function tick() {
-        box.rotation.y += 0.01;
+
+				const targetRot = (mouseX / window.innerWidth) * 360;
+				rot += (targetRot - rot) * 0.02;
+				const radian = rot * Math.PI / 180;
+				camera.position.x = 1000 * Math.sin(radian);
+				camera.position.z = 1000 * Math.cos(radian);
+				// 原点方向を見つめる
+				camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        //box.rotation.y += 0.01;
         renderer.render(scene, camera); // レンダリング
 
         requestAnimationFrame(tick);
