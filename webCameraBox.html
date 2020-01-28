@@ -9,10 +9,10 @@
       overflow: hidden;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
-  <script type="module">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
+	<script type="text/javascript" src="datmin.js"></script>
+  <script>
 
-		import { GUI } from './gui.mjs';
     let video,texture;
 
     // window.addEventListener('resize', onResize);
@@ -42,10 +42,28 @@
       // Error
       console.error('mediaDevice.getUserMedia() error:', error);
       return;
-    });
+		});
+
+
+
 
     function init() {
 
+			let size = 0.8;
+			const FizzyText = function() {
+				this.size = size;
+				this.displayOutline = false;
+			};
+
+			const text = new FizzyText();
+
+			const gui = new dat.GUI();
+			const sizeGui = gui.add(text, 'size', -5, 5);
+			const b = gui.add(text, 'displayOutline');
+
+			b.onChange(value =>{
+
+			});
       // サイズを指定
       const width = 480;
       const height = 270;
@@ -94,8 +112,11 @@
 			var params = {
 				light: true,
 			};
-			var gui = new GUI();
-			gui.add( params, 'light' );
+
+			sizeGui.onChange(value =>{
+				size = value;
+				plane.scale.set(size, size, size);
+			});
 
       tick();
 
