@@ -28,26 +28,27 @@
       key: '225698eb-4135-462d-b000-2d82b71e3a76',
       debug: 3
     });
+
     peer.on('open', () => {
       document.getElementById('my-id').textContent = peer.id;
     });
 
     document.getElementById('make-call').onclick = () => {
       const theirID = document.getElementById('their-id').value;
-      const call = peer.call(theirID, localStream);
-      setupCallEventHandlers(call);
+      const mediaConnection = peer.call(theirID, localStream);
+      setEventHandler(mediaConnection);
     };
-    
-    const setupCallEventHandlers = call => {
-      call.on('stream', stream => {
-          document.getElementById('their-video').srcObject = stream;
-      });
-    }
-    peer.on('call', call => {
-      call.answer(localStream);
-      setupCallEventHandlers(call);
+
+    peer.on('call', mediaConnection => {
+      mediaConnection.answer(localStream);
+      setEventHandler(mediaConnection);
     });
 
+    const setEventHandler = mediaConnection => {
+      mediaConnection.on('stream', stream => {
+        document.getElementById('their-video').srcObject = stream;
+      });
+    }
 
     let video,texture;
 
