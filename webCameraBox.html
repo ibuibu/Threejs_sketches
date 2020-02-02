@@ -9,9 +9,45 @@
       overflow: hidden;
     }
   </style>
+</head>
+  <body>
+    <canvas id="myCanvas"></canvas>
+    <p id='my-id'></p>
+    <video id="their-video" autoplay></video>
+    <textarea id="their-id" cols="20" rows="1"></textarea>
+    <button id='make-call'>makecall</button>
+  </body>
+  <script type="text/javascript" src="https://cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
 	<script type="text/javascript" src="datmin.js"></script>
   <script>
+    let localStream;
+
+    // skyway
+    const peer = new Peer({
+      key: '225698eb-4135-462d-b000-2d82b71e3a76',
+      debug: 3
+    });
+    peer.on('open', () => {
+      document.getElementById('my-id').textContent = peer.id;
+    });
+
+    document.getElementById('make-call').onclick = () => {
+      const theirID = document.getElementById('their-id').value;
+      const call = peer.call(theirID, localStream);
+      setupCallEventHandlers(call);
+    };
+    
+    const setupCallEventHandlers = call => {
+      call.on('stream', stream => {
+          document.getElementById('their-video').srcObject = stream;
+      });
+    }
+    peer.on('call', call => {
+      call.answer(localStream);
+      setupCallEventHandlers(call);
+    });
+
 
     let video,texture;
 
@@ -21,6 +57,7 @@
       .then(function (stream) {
         // Success
         // video = stream;
+        localStream = stream;
 
         video = document.createElement( 'video' );
         // URLオブジェクトを作成して、videoエレメントのsrcに設定
@@ -50,17 +87,25 @@
     function init() {
 
 			let size = 0.8;
+			let rotX = 0;
+			let rotY = 0;
+			let rotZ = 0;
+
+      //gui set
 			const FizzyText = function() {
 				this.size = size;
+				this.rotX = rotX;
+				this.rotY = rotY;
+				this.rotZ = rotZ;
 				this.displayOutline = false;
 			};
-
 			const text = new FizzyText();
-
 			const gui = new dat.GUI();
-			const sizeGui = gui.add(text, 'size', -5, 5);
+			const sizeGui = gui.add(text, 'size', 0, 5);
+			const rotXGui = gui.add(text, 'rotX', 0, Math.PI*2);
+			const rotYGui = gui.add(text, 'rotY', 0, Math.PI*2);
+			const rotZGui = gui.add(text, 'rotZ', 0, Math.PI*2);
 			const b = gui.add(text, 'displayOutline');
-
 			b.onChange(value =>{
 
 			});
@@ -102,44 +147,56 @@
       // シーンに追加
       scene.add(directionalLight);
 
-			let rot = 0; // 角度
-			let mouseX = 0; // マウス座標
+			// let rot = 0; // 角度
+			// let mousex = 0; // マウス座標
+			// let mousey = 0; // マウス座標
 			// マウス座標はマウスが動いた時のみ取得できる
-			document.addEventListener("mousemove", (event) => {
-				mouseX = event.pageX;
-			});
-
-			var params = {
-				light: true,
-			};
+			// document.addeventlistener("mousemove", (event) => {
+			// 	mouseX = event.pageX;
+      //   mouseY = event.pageY;
+			// });
 
 			sizeGui.onChange(value =>{
-				size = value;
-				plane.scale.set(size, size, size);
+				plane.scale.set(value, value, value);
 			});
 
+      let rx,ry,rz;
+      [rx,ry,rz] = [0,0,0];
+			rotXGui.onChange(value =>{
+        rx = value;
+				plane.rotation.set(rx, ry, rz);
+			});
+
+			rotYGui.onChange(value =>{
+        ry = value;
+				plane.rotation.set(rx, ry, rz);
+      });
+
+			rotZGui.onChange(value =>{
+        rz = value;
+				plane.rotation.set(rx, ry, rz);
+			});
       tick();
 
       // 毎フレーム時に実行されるループイベントです
       function tick() {
 
-				const targetRot = (mouseX / window.innerWidth) * 360;
-				rot += (targetRot - rot) * 0.02;
-				const radian = rot * Math.PI / 180;
-				camera.position.x = 1000 * Math.sin(radian);
-				camera.position.z = 1000 * Math.cos(radian);
-				// 原点方向を見つめる
-				camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-        //box.rotation.y += 0.01;
+				// const targetRot = (mouseX / window.innerWidth) * 360;
+				// rot += (targetRot - rot) * 0.02;
+				// const radian = rot * Math.PI / 180;
+				// camera.position.x = 1000 * Math.sin(radian);
+				// camera.position.z = 1000 * Math.cos(radian);
+				// // 原点方向を見つめる
+				// camera.lookAt(new THREE.Vector3(0, 0, 0));
+        // //box.rotation.y += 0.01;
         renderer.render(scene, camera); // レンダリング
 
         requestAnimationFrame(tick);
       }
-              // 初期化のために実行
-              onResize();
+        // 初期化のために実行
+          // onResize();
         // リサイズイベント発生時に実行
-        window.addEventListener('resize', onResize);
+        // window.addEventListener('resize', onResize);
 
         function onResize() {
           // サイズを取得
@@ -156,8 +213,5 @@
         }
     }
   </script>
-</head>
-<body>
-  <canvas id="myCanvas"></canvas>
-</body>
+
 </html>

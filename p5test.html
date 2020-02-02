@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
+  </head>
+  <body>
+    <script>
+        // refering to https://ml5js.org/reference/api-PoseNet/
+        let video;
+        function setup() {
+            createCanvas(400, 400);
+            video = createCapture(VIDEO);
+            video.hide();
+            poseNet = ml5.poseNet(video, modelReady);
+            poseNet.on('pose', gotPoses);
+        }
+        const gotPoses = pose => {
+            console.log(pose);
+        }
+        const modelReady = () => {
+            console.log('model Ready');
+        }
+
+        function draw() {
+            image(video,0,0);
+            filter(GRAY);
+        }
+    </script>
+  </body>
+</html>
